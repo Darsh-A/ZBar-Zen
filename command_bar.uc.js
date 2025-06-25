@@ -2,10 +2,28 @@
 // @name        Command Bar
 // @description An Omnipresent Command Bar for Zen Browser
 // @include     main
+// @ignorecache
 // ==/UserScript==
 
 (function () {
   "use strict";
+
+  const appendXUL = (parentElement, xulString, insertBefore=null) => {
+    let element = new DOMParser().parseFromString(xulString, "text/html");
+    
+    if (element.body.children.length) element = element.body.firstChild;
+    else element = element.head.firstChild;
+
+    element = parentElement.ownerDocument.importNode(element, true);
+
+    if (insertBefore) {
+      parentElement.insertBefore(element, insertBefore);
+    } else {
+      parentElement.appendChild(element);
+    }
+
+    return element;
+  }
 
   const commands = [
     // ----------- Compact Mode Commands -----------
@@ -250,19 +268,19 @@
             background-color: rgba(0,0,0,0.2);
         `;
 
-        this.input = document.createElement("input");
-        this.input.id = "zen-command-bar-input";
-        this.input.placeholder = "Type a command...";
-        this.input.style.cssText = `
-            width: 100%;
-            padding: 10px;
-            background-color: #222;
-            border: 1px solid #444;
-            color: #fff;
-            border-radius: 4px;
-            font-size: 16px;
-            box-sizing: border-box;
-        `;
+        this.input = appendXUL(inputContainer, `
+            <input id="zen-command-bar-input" placeholder="Type a command..."
+              style="
+                width: 100%;
+                padding: 10px;
+                background-color: #222;
+                border: 1px solid #444;
+                color: #fff;
+                border-radius: 4px;
+                font-size: 16px;
+                box-sizing: border-box;
+              "/>
+        `);
 
         this.resultsList = document.createElement("div");
         this.resultsList.id = "zen-command-bar-results";
@@ -463,8 +481,7 @@
       const command = document.getElementById(commandId);
       if (command && commandId.startsWith("cmd_")) {
         command.doCommand();
-      }
-      else {
+      } else {
         // TODO: Add Other Commands from prefs and stuff
         console.log("Command not found or not a registered cmd_:", commandId);
       }
@@ -482,5 +499,4 @@
   }
 
   initWhenReady();
-
 })();
