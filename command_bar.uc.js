@@ -90,7 +90,7 @@
       category: "Workspaces",
       tags: ["workspace", "create", "new", "add", "management"]
     },
-    ...Array.from({ length: 10 }, (_, i) => ({
+    ...Array.from({ length: 5 }, (_, i) => ({
       id: `cmd_zenWorkspaceSwitch${i + 1}`,
       label: `Switch to Workspace ${i + 1}`,
       category: "Workspaces",
@@ -446,20 +446,24 @@
             top: 20%;
             left: 50%;
             transform: translateX(-50%);
-            width: 500px;
-            background-color: #333;
-            color: #fff;
-            border-radius: 8px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            width: 580px;
+            background-color: rgba(30, 30, 35, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            color: #e4e4e7;
+            border-radius: 12px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.08);
             z-index: 10000;
             overflow: hidden;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
         `;
 
         const inputContainer = document.createElement("div");
         inputContainer.style.cssText = `
-            padding: 8px;
-            background-color: rgba(0,0,0,0.2);
+            padding: 12px 16px;
+            background-color: rgba(0, 0, 0, 0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
         `;
 
         this.input = document.createElement("input");
@@ -467,20 +471,23 @@
         this.input.placeholder = "Type a command...";
         this.input.style.cssText = `
             width: 100%;
-            padding: 10px;
-            background-color: #222;
-            border: 1px solid #444;
-            color: #fff;
-            border-radius: 4px;
-            font-size: 16px;
+            padding: 10px 12px;
+            background-color: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: #f4f4f5;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 400;
             box-sizing: border-box;
+            transition: all 0.15s ease;
         `;
 
         this.resultsList = document.createElement("div");
         this.resultsList.id = "zen-command-bar-results";
         this.resultsList.style.cssText = `
-            max-height: 400px;
+            max-height: 360px;
             overflow-y: auto;
+            padding: 4px 0;
         `;
 
         inputContainer.appendChild(this.input);
@@ -496,20 +503,54 @@
       const css = `
         #zen-command-bar-input:focus {
             outline: none !important;
-            border-color: rgb(107, 175, 243) !important;
+            border-color: rgba(219, 191, 208, 0.35) !important;
+            background-color: rgba(255, 255, 255, 0.08) !important;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1) !important;
+        }
+        #zen-command-bar-input::placeholder {
+            color: #a1a1aa;
         }
         .zen-command-bar-item {
-            padding: 12px 16px;
+            padding: 10px 16px;
             cursor: pointer;
-            border-bottom: 1px solid #444;
-            font-size: 14px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            font-size: 13px;
+            font-weight: 400;
+            color: #d4d4d8;
+            transition: all 0.12s ease;
+            margin: 0 4px;
+            border-radius: 6px;
+            border-bottom: none;
         }
         .zen-command-bar-item:last-child {
             border-bottom: none;
         }
         .zen-command-bar-item.selected {
-            background-color:rgb(107, 175, 243) !important;
-            color: white !important;
+            background-color: rgba(190, 146, 201, 0.15) !important;
+        }
+        .zen-command-bar-category {
+            padding: 8px 16px 8px 16px !important;
+            font-size: 11px !important;
+            font-weight: 600 !important;
+            color: #71717a !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.8px !important;
+            background-color: transparent !important;
+            margin: 8px 0 4px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+        }
+        #zen-command-bar-results::-webkit-scrollbar {
+            width: 6px;
+        }
+        #zen-command-bar-results::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        #zen-command-bar-results::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 3px;
+        }
+        #zen-command-bar-results::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.25);
         }
       `;
       let style = document.createElement("style");
@@ -519,6 +560,7 @@
 
     addEventListeners() {
       window.addEventListener("keydown", (e) => this.handleGlobalKeydown(e));
+      document.addEventListener("click", (e) => this.handleOutsideClick(e));
       this.input.addEventListener("input", () => this.updateResults());
       this.input.addEventListener("keydown", (e) => this.handleInputKeydown(e));
       this.resultsList.addEventListener("click", (e) => this.handleResultClick(e));
@@ -532,6 +574,12 @@
         }
       }
       if (this.panel && !this.panel.hidden && e.key === "Escape") {
+        this.hide();
+      }
+    }
+
+    handleOutsideClick(e) {
+      if (this.panel && !this.panel.hidden && !this.panel.contains(e.target)) {
         this.hide();
       }
     }
